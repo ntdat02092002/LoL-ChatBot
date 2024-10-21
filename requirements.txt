@@ -1,0 +1,10 @@
+langchain
+langchain-huggingface
+langchain-pinecone
+langchain-text-splitters
+langchain-community
+pinecone[grpc]
+python-dotenv
+streamlit
+sentence_transformers
+lark
