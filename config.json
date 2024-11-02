@@ -2,6 +2,6 @@
     "RETRIEVER_MODEL_NAME": "mistralai/Mistral-7B-Instruct-v0.3",
     "SUMMARY_MODEL_NAME": "mistralai/Mistral-7B-Instruct-v0.3",
     "EMBEDDING_MODEL_NAME": "",
-    "top_k": 2,
+    "top_k": 5,
     "TEMPERATURE": 1.0
   }
