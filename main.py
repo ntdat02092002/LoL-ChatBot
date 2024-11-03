@@ -18,7 +18,7 @@ from langchain.chains.query_constructor.base import (
 from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
 
-from prompt_template import get_chatbot_promp, get_constructor_prompt
+from prompt_template import get_chatbot_prompt, get_constructor_prompt
 
 
 class LolChatBot():
