@@ -8,6 +8,7 @@ from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
 from langchain_pinecone import PineconeVectorStore
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableParallel, RunnableSerializable
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
 from langchain.chains.query_constructor.base import StructuredQuery
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain_community.query_constructors.pinecone import PineconeTranslator
@@ -108,7 +109,7 @@ class LolChatBot():
             huggingfacehub_api_token=os.getenv('HUGGINGFACE_API_KEY'),
         )
 
-        prompt = get_chatbot_promp()
+        prompt = get_chatbot_prompt()
 
         self.rag_chain_with_source = (
             {"context": self.retriever, "question": RunnablePassthrough()}
