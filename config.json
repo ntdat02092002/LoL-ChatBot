@@ -1,7 +1,8 @@
 {
-    "RETRIEVER_MODEL_NAME": "mistralai/Mistral-7B-Instruct-v0.3",
-    "SUMMARY_MODEL_NAME": "mistralai/Mistral-7B-Instruct-v0.3",
-    "EMBEDDING_MODEL_NAME": "",
-    "top_k": 5,
-    "TEMPERATURE": 1.0
-  }
+  "RETRIEVER_MODEL_NAME": "gemini-1.5-flash",
+  "CHAT_MODEL_NAME": "gemini-1.5-flash",
+  "EMBEDDING_MODEL_NAME": "models/text-embedding-004",
+  "EMBEDDING_DIMENSION": 768,
+  "top_k": 5,
+  "TEMPERATURE": 1.0
+}

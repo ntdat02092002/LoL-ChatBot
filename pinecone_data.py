@@ -1,4 +1,5 @@
 import os
+import json
 import requests
 
 from bs4 import BeautifulSoup
@@ -11,10 +12,16 @@ from pinecone import ServerlessSpec
 # from langchain_text_splitters.character import CharacterTextSplitter
 # from langchain_community.document_loaders import TextLoader
 from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_text_splitters import HTMLHeaderTextSplitter
 
+
+load_dotenv()
+with open('./config.json') as f:
+    config = json.load(f)
+    EMBEDDING_MODEL_NAME = config["EMBEDDING_MODEL_NAME"]
+    EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
 
 """Get Data"""
 
@@ -67,7 +74,7 @@ docs = splitter.split_text(full_html_content)
 for doc in docs:
     # first doc - overview patch with no header (no metadata)
     if not doc.metadata:
-        doc.metadata = {"type": "overview"}
+        doc.metadata = {"category": "overview"}
         continue
 
     page_content = ""
@@ -83,7 +90,7 @@ for doc in docs:
     page_content += doc.page_content
 
     doc.page_content = page_content
-    doc.metadata = {"type": type}
+    doc.metadata = {"category": type}
 
 
 """Load data to pinecone"""
@@ -95,7 +102,7 @@ PINECONE_INDEX_NAME = "docs-rag-chatbot"
 if PINECONE_INDEX_NAME not in pc.list_indexes().names():
     pc.create_index(
         name=PINECONE_INDEX_NAME,
-        dimension=768,
+        dimension=EMBEDDING_DIMENSION,
         metric="cosine",
         spec=ServerlessSpec(
             cloud="aws",
@@ -106,7 +113,7 @@ if PINECONE_INDEX_NAME not in pc.list_indexes().names():
 pc_index = pc.Index(PINECONE_INDEX_NAME)
 print(pc_index.describe_index_stats())
 
-embeddings = HuggingFaceEmbeddings()
+embeddings = GoogleGenerativeAIEmbeddings(model=EMBEDDING_MODEL_NAME)
 namespace = "lol-patch"
 
 try:

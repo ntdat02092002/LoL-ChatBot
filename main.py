@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from typing import Optional
 from typing import Dict
 
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
+from langchain_google_genai import GoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableParallel, RunnableSerializable
 from langchain_core.output_parsers import StrOutputParser
@@ -15,17 +15,20 @@ from langchain_community.query_constructors.pinecone import PineconeTranslator
 from langchain.chains.query_constructor.base import (
     StructuredQueryOutputParser,
 )
+import langchain
 
 from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
 
 from prompt_template import get_chatbot_prompt, get_constructor_prompt
 
+# langchain.debug = True
 
 class LolChatBot():
     RETRIEVER_MODEL_NAME: str = None
-    SUMMARY_MODEL_NAME: str = None
+    CHAT_MODEL_NAME: str = None
     EMBEDDING_MODEL_NAME: str = None
+    EMBEDDING_DIMENSION: int = None
     constructor_prompt: Optional[PromptTemplate] = None
     vectorstore: Optional[PineconeVectorStore] = None
     retriever: Optional[SelfQueryRetriever] = None
@@ -40,8 +43,9 @@ class LolChatBot():
         with open('./config.json') as f:
             config = json.load(f)
             self.RETRIEVER_MODEL_NAME = config["RETRIEVER_MODEL_NAME"]
-            self.SUMMARY_MODEL_NAME = config["SUMMARY_MODEL_NAME"]
+            self.CHAT_MODEL_NAME = config["CHAT_MODEL_NAME"]
             self.EMBEDDING_MODEL_NAME = config["EMBEDDING_MODEL_NAME"]
+            self.EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
             self.top_k = config["top_k"]
         self.initialize_query_constructor()
         self.initialize_vector_store()
@@ -61,7 +65,7 @@ class LolChatBot():
         # Target index and check status
         pc_index = pc.Index(PINECONE_INDEX_NAME)
 
-        embeddings = HuggingFaceEmbeddings()
+        embeddings = GoogleGenerativeAIEmbeddings(model=self.EMBEDDING_MODEL_NAME)
 
         namespace = "lol-patch"
         self.vectorstore = PineconeVectorStore(
@@ -71,11 +75,10 @@ class LolChatBot():
         )
 
     def initialize_retriever(self):
-        query_model = HuggingFaceEndpoint(
-            repo_id=self.RETRIEVER_MODEL_NAME,
-            # max_length=128,
-            temperature=0.001,
-            huggingfacehub_api_token=os.getenv('HUGGINGFACE_API_KEY'),
+        query_model = GoogleGenerativeAI(
+            model=self.RETRIEVER_MODEL_NAME,
+            temperature=0.0,
+            google_api_key=os.getenv('GOOGLE_API_KEY'),
         )
 
         output_parser = StructuredQueryOutputParser.from_components()
@@ -102,11 +105,10 @@ class LolChatBot():
 
     def initialize_chat_model(self, config):
 
-        chat_model = HuggingFaceEndpoint(
-            repo_id=self.RETRIEVER_MODEL_NAME,
-            # max_length=128,
+        chat_model = GoogleGenerativeAI(
+            model=self.CHAT_MODEL_NAME,
             temperature=config['TEMPERATURE'],
-            huggingfacehub_api_token=os.getenv('HUGGINGFACE_API_KEY'),
+            google_api_key=os.getenv('GOOGLE_API_KEY'),
         )
 
         prompt = get_chatbot_prompt()
