@@ -35,6 +35,41 @@ else:
 
 # Parse HTML và lấy phần có id="patch notes"
 soup = BeautifulSoup(page_content, "html.parser")
+
+
+title = soup.find("h1", {"data-testid": "title"}).text.strip()
+
+# Lấy mô tả (description)
+description = soup.find("div", {"data-testid": "tagline"}).text.strip()
+
+# Lấy thời gian (time)
+time = soup.find("time").text.strip()
+
+# Lấy ảnh tổng quan của patch (overview image)
+patch_highlights_header = soup.find("h2", {"id": "patch-patch-highlights"})
+overview_image_url = None
+if patch_highlights_header:
+    # Tìm ảnh đầu tiên sau h2 patch highlights
+    overview_image = patch_highlights_header.find_next("img")
+    if overview_image and "src" in overview_image.attrs:
+        overview_image_url = overview_image["src"]
+
+# Tạo dữ liệu dưới dạng dictionary
+patch_data = {
+    "title": title,
+    "description": description,
+    "time": time,
+    "url": url,
+    "overview_image": overview_image_url
+}
+
+# Lưu vào file JSON
+with open(os.path.join(os.getcwd(), "data", "patch_data.json"), "w") as json_file:
+    json.dump(patch_data, json_file, ensure_ascii=False, indent=4)
+
+print("Dữ liệu đã được lưu vào file patch_data.json")
+
+
 patch_section = soup.find(id="patch-notes-container")
 
 # Danh sách các thẻ chỉ có tác dụng định dạng mà không ảnh hưởng tới nội dung
