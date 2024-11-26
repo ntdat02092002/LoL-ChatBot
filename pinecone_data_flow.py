@@ -5,6 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
+from prefect import flow, task
+
 from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
 # from pinecone.core.exceptions import NotFoundException
@@ -17,6 +19,7 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_text_splitters import HTMLHeaderTextSplitter
 
 
+@task
 def start(config):
     """
     Start-up: check everything works or fail fast!
@@ -46,6 +49,7 @@ def start(config):
 PATCH_LISST_URL = "https://www.leagueoflegends.com/en-us/news/tags/patch-notes/"
 JSON_FILE_PATH = os.path.join(os.getcwd(), "data", "patch_data.json")
 
+@task
 def get_latest_patch_version():
     response = requests.get(PATCH_LISST_URL)
     if response.status_code == 200:
@@ -61,7 +65,7 @@ def get_latest_patch_version():
     print("Error: Unable to retrieve the latest patch version.")  
     return None, None
 
-
+@task
 def is_newer_patch(latest_patch_version):
     if os.path.exists(JSON_FILE_PATH):
         with open(JSON_FILE_PATH, "r") as file:
@@ -80,7 +84,7 @@ def is_newer_patch(latest_patch_version):
     else:
         return False
 
-    
+@task  
 def update_patch_info(soup, version, url):
     title = soup.find("h1", {"data-testid": "title"}).text.strip()
 
@@ -117,7 +121,7 @@ def update_patch_info(soup, version, url):
 
     return soup
 
-
+@task
 def get_html_patch(soup):
     patch_section = soup.find(id="patch-notes-container")
 
@@ -144,6 +148,7 @@ def get_html_patch(soup):
 
 """Parse data to docs"""
 
+@task
 def convert_html_to_docs(html_content):
     headers_to_split_on = [
         ("h1", "h1"),
@@ -184,6 +189,7 @@ def convert_html_to_docs(html_content):
 
 """Load data to pinecone"""
 
+@task
 def upload_docs_to_pinecone(docs, config):
     PINECONE_INDEX_NAME = os.getenv('PINECONE_INDEX_NAME')
     pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
@@ -222,7 +228,8 @@ def upload_docs_to_pinecone(docs, config):
     print("Successfully uploaded docs to Pinecone vector store")
 
 
-def flow():
+@flow(log_prints=True)
+def pinecone_flow():
     with open('./config.json') as f:
         config = json.load(f)
     
@@ -245,8 +252,3 @@ def flow():
         upload_docs_to_pinecone(docs, config)
 
         update_patch_info(soup, latest_patch_version, full_url)
-
-
-
-if __name__ == "__main__":
-    flow()
