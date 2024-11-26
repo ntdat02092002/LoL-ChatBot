@@ -233,6 +233,8 @@ def pinecone_flow():
     with open('./config.json') as f:
         config = json.load(f)
     
+    print(config)
+    
     start(config)
     latest_patch_version, url = get_latest_patch_version()
     full_url = f"https://www.leagueoflegends.com{url}"
