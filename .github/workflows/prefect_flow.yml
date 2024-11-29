@@ -1,0 +1,34 @@
+name: Deploy and Run Prefect Flow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - pinecone_data_flow.py
+      - prefect_deployment.py
+
+jobs:
+  deploy-flow:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Prefect
+      run: |
+        pip install prefect
+
+    - name: Deploy flow
+      run: |
+        python flow.py
+
+    - name: Run flow
+      run: |
+        prefect deployment run 'pinecone-flow/lolchatbot-data-flow'
