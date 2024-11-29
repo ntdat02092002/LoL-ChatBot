@@ -254,3 +254,5 @@ def pinecone_flow():
         upload_docs_to_pinecone(docs, config)
 
         update_patch_info(soup, latest_patch_version, full_url)
+    else:
+        print("The current patch is the latest")
