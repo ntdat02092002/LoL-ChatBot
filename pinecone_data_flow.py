@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 from prefect import flow, task
+from prefect.blocks.system import JSON
 
 from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
@@ -38,6 +39,7 @@ def start(config):
     assert os.environ['GOOGLE_API_KEY']
     assert os.environ['PINECONE_API_KEY']
     assert os.environ['PINECONE_INDEX_NAME']
+    assert os.environ['PREFECT_API_KEY']
 
     EMBEDDING_MODEL_NAME = config["EMBEDDING_MODEL_NAME"]
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
@@ -46,12 +48,11 @@ def start(config):
 
 """Get Data"""
 
-PATCH_LISST_URL = "https://www.leagueoflegends.com/en-us/news/tags/patch-notes/"
-JSON_FILE_PATH = os.path.join(os.getcwd(), "data", "patch_data.json")
+PATCH_LIST_URL = "https://www.leagueoflegends.com/en-us/news/tags/patch-notes/"
 
 @task
 def get_latest_patch_version():
-    response = requests.get(PATCH_LISST_URL)
+    response = requests.get(PATCH_LIST_URL)
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, "html.parser")
         # Get first (latest) patch
@@ -65,19 +66,24 @@ def get_latest_patch_version():
     print("Error: Unable to retrieve the latest patch version.")  
     return None, None
 
+def get_prefect_block_exists(block_name: str):
+    try:
+        json_block = JSON.load(block_name)
+        return json_block.value 
+    except ValueError:
+        return None
+
 @task
 def is_newer_patch(latest_patch_version):
-    if os.path.exists(JSON_FILE_PATH):
-        with open(JSON_FILE_PATH, "r") as file:
-            patch_data = json.load(file)
-    else:
-        print("json data not found, create new data file.")
+    block_data = get_prefect_block_exists("lol-latest-patch-info")
+    if not block_data:
+        print("prefect block data not found, create new block.")
         return True
 
-    current_version = patch_data.get("version", "")
+    current_version = block_data.get("version", "")
     if current_version == "":
-        print("Error: Unable to retrieve the current patch version (Version id not found).")
-        return False
+        print("Error: Unable to retrieve the current patch version (Version id not found), create new data.")
+        return True
     
     if current_version != latest_patch_version:
         return True
@@ -113,11 +119,9 @@ def update_patch_info(soup, version, url):
         "overview_image": overview_image_url
     }
 
-    # Lưu vào file JSON
-    with open(JSON_FILE_PATH, "w") as json_file:
-        json.dump(patch_data, json_file, ensure_ascii=False, indent=4)
-
-    print("Dữ liệu mới đã được lưu vào file patch_data.json")
+    json_block = JSON(value=patch_data)
+    json_block.save(name="lol-latest-patch-info", overwrite=True)
+    print("Metadata updated in Prefect Block.")
 
     return soup
 
@@ -256,3 +260,9 @@ def pinecone_flow():
         update_patch_info(soup, latest_patch_version, full_url)
     else:
         print("The current patch is the latest")
+
+
+if __name__ == "__main__":
+    load_dotenv()
+    # for test code purpose
+    pinecone_flow()

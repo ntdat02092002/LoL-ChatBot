@@ -6,6 +6,8 @@ from PIL import Image
 import requests
 from io import BytesIO
 
+from prefect.blocks.system import JSON
+
 # Cấu hình trang
 st.set_page_config(page_title="League of Legends ChatBot", layout="wide")
 
@@ -35,10 +37,9 @@ def generate_response(input):
 
 @st.cache_data
 def load_patch_data():
-    file_path = os.path.join(os.getcwd(), "data", "patch_data.json")
     try:
-        with open(file_path, "r") as f:
-            return json.load(f)
+        json_block = JSON.load("lol-latest-patch-info")
+        return json_block.value
     except FileNotFoundError:
         return []
 

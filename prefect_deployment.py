@@ -27,6 +27,7 @@ if __name__ == "__main__":
                 "GOOGLE_API_KEY": os.environ.get("GOOGLE_API_KEY"),
                 "PINECONE_API_KEY": os.environ.get("PINECONE_API_KEY"),
                 "PINECONE_INDEX_NAME": os.environ.get("PINECONE_INDEX_NAME"),
+                "PREFECT_API_KEY": os.environ.get("PREFECT_API_KEY"),
             }
         },
         
