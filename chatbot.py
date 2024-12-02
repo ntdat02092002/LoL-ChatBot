@@ -40,8 +40,8 @@ def load_patch_data():
     try:
         json_block = JSON.load("lol-latest-patch-info")
         return json_block.value
-    except FileNotFoundError:
-        return []
+    except ValueError:
+        return {"temp": "temp"}
 
 
 # Hàm hiển thị thông tin patch trong sidebar
