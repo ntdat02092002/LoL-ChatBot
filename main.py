@@ -35,6 +35,7 @@ class LolChatBot():
     rag_chain_with_source: Optional[RunnableParallel] = None
     query_constructor: RunnableSerializable[Dict, StructuredQuery] = None
     context: str = None
+    constructed_query: str = None
     top_k: int = None
 
     def __init__(self, **kwargs):
@@ -113,10 +114,26 @@ class LolChatBot():
 
         prompt = get_chatbot_prompt()
 
-        self.rag_chain_with_source = (
-            {"context": self.retriever, "question": RunnablePassthrough()}
-            # | RunnableLambda(self.log_context_and_question) 
-            | prompt 
-            | chat_model 
-            | StrOutputParser()
+        rag_chain_from_docs = (
+            RunnablePassthrough() | prompt | chat_model | StrOutputParser()
         )
+
+        self.rag_chain_with_source = RunnableParallel(
+            {"context": self.retriever, "question": RunnablePassthrough(), "constructed_query": self.query_constructor}
+        ).assign(answer=rag_chain_from_docs)
+
+    def predict_stream(self, query: str):
+        try:
+            for chunk in self.rag_chain_with_source.stream(query):
+                if 'answer' in chunk:
+                    yield chunk['answer']
+                elif 'context' in chunk:
+                    self.context = chunk['context']
+                elif 'query_constructor' in chunk:
+                    self.constructed_query = chunk['constructed_query'].json()
+
+        except Exception as e:
+            return {'answer': f"An error occurred: {e}"}
+    
+    def predict(self, query):
+        return self.rag_chain_with_source.invoke(query)['answer']

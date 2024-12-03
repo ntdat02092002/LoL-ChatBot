@@ -30,9 +30,12 @@ def get_bot():
 bot = get_bot()
 
 # Function for generating LLM response
+# def generate_response(input):
+#     return bot.predict_stream(input)
+
 def generate_response(input):
-    result = bot.rag_chain_with_source.invoke(input)
-    return result
+    response = bot.predict_stream(input)
+    return response
 
 
 @st.cache_data
@@ -119,10 +122,7 @@ if input:
         message_placeholder = st.empty()  # Placeholder for the spinner
         with message_placeholder.container():
             with st.spinner("Chatbot is thinking..."):
-                response = generate_response(input)
-        
-        # Update the placeholder with the actual response
-        message_placeholder.write(response)  # Replace spinner with the response directly
+                response = st.write_stream(generate_response(input))
     
     # Append the response to session_state
     message = {"role": "assistant", "content": response}
