@@ -1,14 +1,17 @@
-from main import LolChatBot
-import streamlit as st
-import json
 import os
-from PIL import Image
+import json
+import datetime
 import requests
-from io import BytesIO
+import threading
 
+import wandb
+import streamlit as st
+from PIL import Image
 from prefect.blocks.system import JSON
 
-# Cấu hình trang
+from main import LolChatBot
+
+
 st.set_page_config(page_title="League of Legends ChatBot", layout="wide")
 
 st.markdown(
@@ -22,20 +25,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Load patch data function
+
 @st.cache_resource
 def get_bot():
     return LolChatBot()
 
+# create bot
 bot = get_bot()
-
-# Function for generating LLM response
-# def generate_response(input):
-#     return bot.predict_stream(input)
-
-def generate_response(input):
-    response = bot.predict_stream(input)
-    return response
 
 
 @st.cache_data
@@ -47,13 +43,11 @@ def load_patch_data():
         return {"temp": "temp"}
 
 
-# Hàm hiển thị thông tin patch trong sidebar
 def display_patch_info(patch):
     st.sidebar.title("League of Legends Patch Update Chatbot")
     st.sidebar.header(f"{patch.get('title', 'N/A')}")
     st.sidebar.write(f'Updated on: {patch.get("time", "N/A")}')
     
-    # Hiển thị hình ảnh overview
     if "overview_image" in patch:
         try:
             custom_css = '''
@@ -82,8 +76,7 @@ def display_patch_info(patch):
             )
         except:
             st.sidebar.write("Could not load the image.")
-
-    # Hiển thị các thông tin patch còn lại    
+  
     description = patch.get("description", "N/A")
     st.sidebar.markdown(f'<div style="text-align: center"> {description} </div>', unsafe_allow_html=True)
 
@@ -91,15 +84,68 @@ def display_patch_info(patch):
         st.sidebar.write("")
         st.sidebar.markdown(f'See details on Riot page: [click here]({patch["url"]})')
 
+
+def generate_response(query):
+    response = bot.predict_stream(query)
+
+    return response
+
+
+def start_log_feedback(feedback):
+    print("Logging feedback.")
+    st.session_state.feedback_given = True
+    st.session_state.sentiment = feedback
+    thread = threading.Thread(target=log_feedback, args=(st.session_state.sentiment,
+                                                         st.session_state.query,
+                                                         st.session_state.constructed_query,
+                                                         st.session_state.context,
+                                                         st.session_state.response))
+    thread.start()
+    if st.session_state.sentiment == "positive":
+        st.toast(body="Thanks for the positive feedback!", icon="🔥")
+    else:
+        st.toast(body="Thanks for the feedback. We'll try to improve!", icon="😔")
+
+
+def log_feedback(sentiment, query, constructed_query, context, response):
+    ct = datetime.datetime.now()
+    wandb.init(project="LoL-ChatBot",
+               name=f"query: {ct}")
+    
+    formatted_context = json.dumps(context, indent=2) # context is an array of dict ([{content: xxx, metadata: yyy}])
+    formatted_constructed_query = json.dumps(constructed_query, indent=2)
+    
+    table = wandb.Table(columns=["sentiment", "query", "constructed_query", "context", "response"])
+    table.add_data(sentiment,
+                   query,
+                   formatted_constructed_query,
+                   formatted_context,
+                   response
+                   )
+    wandb.log({"Query Log": table})
+    wandb.finish()
+
+
+# Initialize session state
+if 'query' not in st.session_state:
+    st.session_state.query = ""
+if 'constructed_query' not in st.session_state:
+    st.session_state.constructed_query = False
+if 'context' not in st.session_state:
+    st.session_state.context = ""
+if 'response' not in st.session_state:
+    st.session_state.response = ""
+if 'sentiment' not in st.session_state:
+    st.session_state.sentiment = None
+if 'feedback_given' not in st.session_state:
+    st.session_state.feedback_given = False
+
 # Load patch data
 patch_data = load_patch_data()
-
-# Hiển thị thông tin patch trong sidebar
 if patch_data:
     display_patch_info(patch_data)  
 else:
     st.sidebar.write("No patch data available.")
-
 
 # Store LLM generated responses
 if "messages" not in st.session_state:
@@ -124,6 +170,22 @@ if input:
             with st.spinner("Chatbot is thinking..."):
                 response = st.write_stream(generate_response(input))
     
+    # assign state
+    st.session_state.query = input
+    st.session_state.constructed_query = bot.constructed_query
+    st.session_state.context = bot.context
+    st.session_state.response = response
+    st.session_state.sentiment = None
+    st.session_state.feedback_given = False
     # Append the response to session_state
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
+
+# display feedback button
+if st.session_state.response and not st.session_state.feedback_given:
+    col1, col2 = st.columns([1, 15])
+    with col1:
+        st.button('👍', key='positive_feedback', disabled=False, on_click=start_log_feedback, args=["positive"])
+
+    with col2:
+        st.button('👎', key='negative_feedback', disabled=False, on_click=start_log_feedback, args=["negative"])

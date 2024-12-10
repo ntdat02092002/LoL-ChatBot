@@ -21,6 +21,7 @@ from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
 
 from prompt_template import get_chatbot_prompt, get_constructor_prompt
+from utils import serialize_pydantic_model
 
 # langchain.debug = True
 
@@ -92,20 +93,12 @@ class LolChatBot():
             search_kwargs={'k': self.top_k}
         )
 
-    def log_context_and_question(inputs):
-        context = inputs["context"]
-        question = inputs["question"]
-        
-        # Print to console (or you can use logging for better debugging)
-        print(f"Context retrieved: {context}")
-        print(f"User question: {question}")
-        print("-------------------------------------------------------------------------")
-        
-        # Return the inputs so they can be passed forward in the chain
-        return inputs
-
+    def format_docs(self, docs):
+        return [
+            {"content": doc.page_content, "metadata": doc.metadata} for doc in docs
+        ]
+    
     def initialize_chat_model(self, config):
-
         chat_model = GoogleGenerativeAI(
             model=self.CHAT_MODEL_NAME,
             temperature=config['TEMPERATURE'],
@@ -115,7 +108,8 @@ class LolChatBot():
         prompt = get_chatbot_prompt()
 
         rag_chain_from_docs = (
-            RunnablePassthrough() | prompt | chat_model | StrOutputParser()
+            RunnablePassthrough.assign(
+                context=(lambda x: self.format_docs(x["context"]))) | prompt | chat_model | StrOutputParser()
         )
 
         self.rag_chain_with_source = RunnableParallel(
@@ -128,9 +122,10 @@ class LolChatBot():
                 if 'answer' in chunk:
                     yield chunk['answer']
                 elif 'context' in chunk:
-                    self.context = chunk['context']
-                elif 'query_constructor' in chunk:
-                    self.constructed_query = chunk['constructed_query'].json()
+                    docs = chunk['context']
+                    self.context = self.format_docs(docs)
+                elif 'constructed_query' in chunk:
+                    self.constructed_query = serialize_pydantic_model(chunk['constructed_query'])
 
         except Exception as e:
             return {'answer': f"An error occurred: {e}"}
