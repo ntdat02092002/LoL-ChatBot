@@ -21,7 +21,8 @@ if __name__ == "__main__":
                                 "langchain-google-genai==2.0.4",
                                 "langchain-pinecone==0.2.0",
                                 "langchain-text-splitters==0.3.0", 
-                                "langchain==0.3.3"
+                                "langchain==0.3.3",
+                                "lark==1.2.2"
                             ],
             "env": {
                 "GOOGLE_API_KEY": os.environ.get("GOOGLE_API_KEY"),
