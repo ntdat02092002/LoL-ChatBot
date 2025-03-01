@@ -101,14 +101,19 @@ To modify the chatbot:
 ## 🎯 Features
 
 ✅ Automatically crawls detailed patch notes from the official game site to ensure up-to-date information.
+
 ✅ RAG-based retrieval model using LangChain with Pinecone as the vector database.
+
 ✅ Implements **self-query retriever** for more accurate and context-aware responses.
+
 ✅ Stores complete user interaction history **under the hood** for analysis and continuous improvement.
 
 ## 🚀 Roadmap
 
 🔹 Optimize prompt templates for improved response quality
+
 🔹 Implement memory & follow-up conversation capabilities
+
 🔹 Expand chatbot scope beyond latest patch updates (include patch history & general game information)
 
 ---
