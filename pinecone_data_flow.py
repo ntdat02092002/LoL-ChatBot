@@ -94,22 +94,21 @@ def is_newer_patch(latest_patch_version):
 def update_patch_info(soup, version, url):
     title = soup.find("h1", {"data-testid": "title"}).text.strip()
 
-    # Lấy mô tả (description)
+    # Get description
     description = soup.find("div", {"data-testid": "tagline"}).text.strip()
 
-    # Lấy thời gian (time)
+    # Get time
     time = soup.find("time").text.strip()
 
-    # Lấy ảnh tổng quan của patch (overview image)
+    # Get the overview image of the patch
     patch_highlights_header = soup.find("h2", {"id": "patch-patch-highlights"})
     overview_image_url = None
     if patch_highlights_header:
-        # Tìm ảnh đầu tiên sau h2 patch highlights
+        # Find the first image after h2 "Patch Highlights"
         overview_image = patch_highlights_header.find_next("img")
         if overview_image and "src" in overview_image.attrs:
             overview_image_url = overview_image["src"]
 
-    # Tạo dữ liệu dưới dạng dictionary
     patch_data = {
         "version": version,
         "title": title,
@@ -129,21 +128,21 @@ def update_patch_info(soup, version, url):
 def get_html_patch(soup):
     patch_section = soup.find(id="patch-notes-container")
 
-    # Danh sách các thẻ chỉ có tác dụng định dạng mà không ảnh hưởng tới nội dung
+    # List of tags used only for formatting, not affecting content
     formatting_tags = ["strong", "em", "u", "b", "i", "s"]
 
-    # Nối tất cả nội dung của thẻ và thẻ con vào một chuỗi, giữ nguyên HTML
+    # Concatenate all content of the tag and its child tags into a single string, preserving HTML
     full_html_content = ""
     if patch_section:
         for child in patch_section.find_all(recursive=False):
-            # Chèn \n sau phần văn bản nếu có nội dung thực sự và không thuộc thẻ định dạng
+            # Insert \n after text content if it has actual content and does not belong to formatting tags
             for elem in child.find_all(text=True):
                 parent_tag = elem.parent.name
-                if elem.strip():  # Kiểm tra chuỗi có nội dung thực sự
-                    # Chỉ chèn \n nếu thẻ cha không nằm trong danh sách các thẻ định dạng
+                if elem.strip():  # Check if the string contains actual content
+                    # Only insert \n if the parent tag is not in the formatting tag list
                     if parent_tag not in formatting_tags:
                         elem.replace_with(elem + "\\n")
-            full_html_content += str(child)  # Giữ nguyên HTML của các thẻ con
+            full_html_content += str(child)  # Preserve the HTML of child tags
     else:
         raise "cannot find <id='patch notes'> element"
 
@@ -164,7 +163,7 @@ def convert_html_to_docs(html_content):
 
     splitter = HTMLHeaderTextSplitter(headers_to_split_on)
 
-    # Tách nội dung thành các đoạn theo các thẻ tiêu đề
+    # Split content into sections based on heading tags
     docs = splitter.split_text(html_content)
 
     for doc in docs:
