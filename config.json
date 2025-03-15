@@ -1,6 +1,6 @@
 {
-  "RETRIEVER_MODEL_NAME": "gemini-1.5-flash",
-  "CHAT_MODEL_NAME": "gemini-1.5-flash",
+  "RETRIEVER_MODEL_NAME": "gemini-2.0-flash",
+  "CHAT_MODEL_NAME": "gemini-2.0-flash",
   "EMBEDDING_MODEL_NAME": "models/text-embedding-004",
   "EMBEDDING_DIMENSION": 768,
   "top_k": 10,
