@@ -13,17 +13,19 @@ if __name__ == "__main__":
         work_pool_name="lolchatbot-pool",
         cron="0 0 * * *",
         job_variables={
+            "image": "prefecthq/prefect:3-python3.11",
             "pip_packages": [
-                "beautifulsoup4>=4.12.3",     
-                "python-dotenv>=1.0.1",        
-                "pinecone[grpc]>=5.3.1",        
-                "langchain-google-genai>=2.0.4",
-                "langchain-pinecone>=0.2.0",    
-                "langchain-text-splitters>=0.3.0",
-                "langchain>=0.3.3",
-                "lxml>=5.3.0",
-                "prefect>=3.0.0"                
-            ],
+                                "beautifulsoup4==4.12.3", 
+                                "python-dotenv==1.0.1", 
+                                "pinecone[grpc]==5.3.1", 
+                                "python-dotenv==1.0.1", 
+                                "langchain-google-genai==2.0.4",
+                                "langchain-pinecone==0.2.0",
+                                "langchain-text-splitters==0.3.0", 
+                                "langchain==0.3.3",
+                                "lxml==5.3.0",
+                                "prefect==3.1.4"
+                            ],
             "env": {
                 "GOOGLE_API_KEY": os.environ.get("GOOGLE_API_KEY"),
                 "PINECONE_API_KEY": os.environ.get("PINECONE_API_KEY"),
