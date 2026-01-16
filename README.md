@@ -7,6 +7,7 @@ sdk: streamlit
 sdk_version: "1.39.0"
 app_file: chatbot.py
 pinned: false
+python_version: 3.11
 ---
 
 # League of Legends Patch Update ChatBot
