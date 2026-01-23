@@ -214,7 +214,8 @@ def upload_docs_to_pinecone(docs, config):
     pc_index = pc.Index(PINECONE_INDEX_NAME)
     print(pc_index.describe_index_stats())
 
-    embeddings = GoogleGenerativeAIEmbeddings(model=config['EMBEDDING_MODEL_NAME'])
+    embeddings = GoogleGenerativeAIEmbeddings(model=config['EMBEDDING_MODEL_NAME'],
+                                            output_dimensionality=config["EMBEDDING_DIMENSION"])
     namespace = "lol-patch"
 
     try:

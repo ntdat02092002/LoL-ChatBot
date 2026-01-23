@@ -67,7 +67,8 @@ class LolChatBot():
         # Target index and check status
         pc_index = pc.Index(PINECONE_INDEX_NAME)
 
-        embeddings = GoogleGenerativeAIEmbeddings(model=self.EMBEDDING_MODEL_NAME)
+        embeddings = GoogleGenerativeAIEmbeddings(model=self.EMBEDDING_MODEL_NAME, 
+                                                  output_dimensionality=self.EMBEDDING_DIMENSION)
 
         namespace = "lol-patch"
         self.vectorstore = PineconeVectorStore(
