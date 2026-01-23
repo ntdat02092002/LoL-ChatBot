@@ -11,4 +11,6 @@ streamlit==1.39.0
 lark==1.2.2
 beautifulsoup4==4.12.3
 prefect==3.1.4
+pydantic==2.9.2
+pydantic-settings==2.5.2
 wandb==0.18.7

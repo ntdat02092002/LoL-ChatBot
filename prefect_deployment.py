@@ -24,7 +24,9 @@ if __name__ == "__main__":
                                 "langchain-text-splitters==0.3.0", 
                                 "langchain==0.3.3",
                                 "lxml==5.3.0",
-                                "prefect==3.1.4"
+                                "prefect==3.1.4",
+                                "pydantic==2.9.2",
+                                "pydantic-settings==2.5.2"
                             ],
             "env": {
                 "GOOGLE_API_KEY": os.environ.get("GOOGLE_API_KEY"),

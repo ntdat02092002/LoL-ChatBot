@@ -77,7 +77,7 @@ For setting up and deploying on your local machine, please refer to the official
 
 ```bash
 python prefect_deployment.py
-prefect deployment run 'pinecone-flow/lolchatbot-data-flow'
+prefect deployment run "pinecone-flow/lolchatbot-data-flow"
 ```
 
 ## 🤖 Start the Chatbot
