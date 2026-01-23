@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 from prefect import flow, task
-from prefect.blocks.system import String
+from prefect.variables import Variable
 
 from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
@@ -66,13 +66,11 @@ def get_latest_patch_version():
     print("Error: Unable to retrieve the latest patch version.")  
     return None, None
 
-def get_prefect_block_exists(block_name: str):
+def get_prefect_block_exists(key: str):
     try:
-        string_block = String.load(block_name)
-        return json.loads(string_block.value)
-    except ValueError:
-        return None
-    except Exception: 
+        value = Variable.get(key)
+        return json.loads(value)
+    except Exception:
         return None
 
 @task
@@ -121,8 +119,7 @@ def update_patch_info(soup, version, url):
     }
 
     json_content = json.dumps(patch_data)
-    string_block = String(value=json_content)
-    string_block.save(name="lol-latest-patch-info", overwrite=True)
+    Variable.set("lol-latest-patch-info", json_content, overwrite=True)
     print("Metadata updated in Prefect Block (String format).")
 
     return soup

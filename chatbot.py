@@ -8,7 +8,7 @@ import time
 import wandb
 import streamlit as st
 from PIL import Image
-from prefect.blocks.system import String
+from prefect.variables import Variable
 
 from main import LolChatBot
 
@@ -33,35 +33,36 @@ class PatchDataLoader:
     def load_and_check(self):
         """Load patch data and check if it's new"""
         try:
-            string_block = String.load("lol-latest-patch-info")
-            new_data = json.loads(string_block.value)
-            
+            value = Variable.get("lol-latest-patch-info", default=None)
+            if not value:
+                return {"temp": "temp"}, False
+
+            new_data = json.loads(value)
+
             needs_refresh = False
             if self.current_patch_version is not None:
                 if new_data.get("version", "") != self.current_patch_version:
                     needs_refresh = True
-                    
+
             self.current_patch_version = new_data.get("version", "")
             return new_data, needs_refresh
-            
-        except ValueError:
+
+        except Exception:
             return {"temp": "temp"}, False
     
     @staticmethod
     def refresh_client():
         """Force client reload and clear cache/session"""
         st.info("New patch detected! Refreshing data...", icon="🔄")
-        time.sleep(1)  # Give user time to see the message
+        time.sleep(1)
 
         st.cache_data.clear()
-        
-        # Clear session state except for essential items
-        keys_to_keep = []  # Add any keys you want to preserve
-        for key in st.session_state.keys():
+
+        keys_to_keep = []
+        for key in list(st.session_state.keys()):
             if key not in keys_to_keep:
                 del st.session_state[key]
-        
-        # Force client reload using JavaScript
+
         st.rerun()
 
 # Create loader instance
