@@ -3,11 +3,12 @@ import json
 import datetime
 import requests
 import threading
+import time
 
 import wandb
 import streamlit as st
 from PIL import Image
-from prefect.blocks.system import JSON
+from prefect.blocks.system import String
 
 from main import LolChatBot
 
@@ -32,8 +33,8 @@ class PatchDataLoader:
     def load_and_check(self):
         """Load patch data and check if it's new"""
         try:
-            json_block = JSON.load("lol-latest-patch-info")
-            new_data = json_block.value
+            string_block = String.load("lol-latest-patch-info")
+            new_data = json.loads(string_block.value)
             
             needs_refresh = False
             if self.current_patch_version is not None:
