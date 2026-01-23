@@ -2,7 +2,7 @@
   "RETRIEVER_MODEL_NAME": "gemini-2.5-flash",
   "CHAT_MODEL_NAME": "gemini-2.5-flash",
   "EMBEDDING_MODEL_NAME": "models/gemini-embedding-001",
-  "EMBEDDING_DIMENSION": 768,
+  "EMBEDDING_DIMENSION": 3072,
   "top_k": 10,
   "TEMPERATURE": 1.0
 }
