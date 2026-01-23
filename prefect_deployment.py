@@ -17,16 +17,16 @@ if __name__ == "__main__":
             "pip_packages": [
                                 "beautifulsoup4==4.12.3", 
                                 "python-dotenv==1.0.1", 
-                                "pinecone[grpc]==5.3.1", 
+                                "pinecone[grpc]==7.3.0", 
                                 "python-dotenv==1.0.1", 
-                                "langchain-google-genai==2.0.4",
-                                "langchain-pinecone==0.2.0",
-                                "langchain-text-splitters==0.3.0", 
-                                "langchain==0.3.3",
+                                "langchain-google-genai==4.2.0",
+                                "langchain-pinecone==0.2.13",
+                                "langchain-text-splitters==1.1.0", 
+                                "langchain==1.2.6",
                                 "lxml==5.3.0",
-                                "prefect==3.1.4",
-                                "pydantic==2.9.2",
-                                "pydantic-settings==2.5.2"
+                                "prefect==3.6.13",
+                                "pydantic==2.12.5",
+                                "pydantic-settings==2.12.0"
                             ],
             "env": {
                 "GOOGLE_API_KEY": os.environ.get("GOOGLE_API_KEY"),
