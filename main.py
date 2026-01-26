@@ -6,16 +6,14 @@ from typing import Dict
 
 from langchain_google_genai import GoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableParallel, RunnableSerializable
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel, RunnableSerializable
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
-from langchain.chains.query_constructor.base import StructuredQuery
-from langchain.retrievers.self_query.base import SelfQueryRetriever
+
+from langchain_core.structured_query import StructuredQuery
+from langchain_classic.chains.query_constructor.base import StructuredQueryOutputParser
+from langchain_classic.retrievers.self_query.base import SelfQueryRetriever
 from langchain_community.query_constructors.pinecone import PineconeTranslator
-from langchain.chains.query_constructor.base import (
-    StructuredQueryOutputParser,
-)
-import langchain
 
 from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec

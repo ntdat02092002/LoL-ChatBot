@@ -1,8 +1,8 @@
 from langchain_core.prompts import PromptTemplate
-from langchain.chains.query_constructor.base import (
+from langchain_classic.chains.query_constructor.base import (
     get_query_constructor_prompt,
 )
-from langchain.chains.query_constructor.base import AttributeInfo, StructuredQuery
+from langchain_classic.chains.query_constructor.base import AttributeInfo, StructuredQuery
 
 
 CHATBOT_TEMPLATE = """
